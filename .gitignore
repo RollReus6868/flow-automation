@@ -4,3 +4,12 @@ node_modules/
 # Rác tạm khi chạy test trên Chromium thật
 /tmp-profile-*/
 *.log
+
+# ────────────────────────────────────────────────────────────────────────────
+# Repo này nằm trùng thư mục home của môi trường phát triển, nên chặn hẳn mọi
+# file/thư mục ẩn để không bao giờ commit nhầm khoá SSH, cache hay cấu hình cá
+# nhân. Chỉ mở ngoại lệ cho những file ẩn thực sự thuộc dự án.
+# ────────────────────────────────────────────────────────────────────────────
+.*
+!.gitignore
+!.github/
