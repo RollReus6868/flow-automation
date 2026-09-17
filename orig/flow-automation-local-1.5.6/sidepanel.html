@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Flow Automation Local</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="brand">FLOW AUTOMATION <span>LOCAL</span></div>
+      <div class="sub">Fork local của engine 1.5.6 · không sniff token · không backend tài khoản</div>
+    </div>
+    <button id="openFlowBtn" class="ghost">Mở Flow</button>
+  </header>
+
+  <section class="connection card compact">
+    <div class="row between">
+      <div><span id="connDot" class="dot"></span><strong id="connText">Đang kiểm tra Flow…</strong></div>
+      <button id="refreshConnBtn" class="linkbtn">Kiểm tra</button>
+    </div>
+    <div class="muted" id="connDetail">Mở một project Google Flow trước khi chạy.</div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="run">Chạy</button>
+    <button class="tab" data-tab="settings">Cài đặt</button>
+    <button class="tab" data-tab="projects">Dự án</button>
+    <button class="tab" data-tab="logs">Log</button>
+  </nav>
+
+  <main>
+    <section id="tab-run" class="tabpane active">
+      <div class="card">
+        <label class="label">Danh sách Prompt <span id="promptCount" class="badge">0</span></label>
+        <textarea id="promptsInput" rows="10" placeholder="Mỗi dòng là một prompt…"></textarea>
+
+        <div class="grid2 gap topgap">
+          <div>
+            <label class="label small">Từ dòng</label>
+            <input id="startIndex" type="number" min="1" value="1">
+          </div>
+          <div>
+            <label class="label small">Đến dòng</label>
+            <input id="endIndex" type="number" min="1" value="1">
+          </div>
+        </div>
+
+        <label class="checkline topgap"><input id="useCustomRange" type="checkbox"> Chỉ chạy các số chỉ định</label>
+        <input id="customIndices" class="topgap hidden" placeholder="Ví dụ: 1, 3, 7, 10">
+        <div id="rangeInfo" class="muted topgap">0 prompt được chọn</div>
+
+        <div class="actions topgap">
+          <button id="startBtn" class="primary">▶ Bắt đầu</button>
+          <button id="resetBtn" class="danger ghostdanger">Đặt lại</button>
+        </div>
+      </div>
+
+      <div class="stats grid3">
+        <div class="stat"><span>Đang tạo</span><strong id="statCreating">0</strong></div>
+        <div class="stat"><span>Hoàn tất</span><strong id="statCompleted">0</strong></div>
+        <div class="stat"><span>Lỗi</span><strong id="statError">0</strong></div>
+      </div>
+
+      <div id="summary" class="card summary hidden"></div>
+
+      <div class="card tablecard">
+        <div class="row between"><strong>Tiến trình</strong><span id="elapsed" class="muted">00:00:00</span></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>#</th><th>Prompt</th><th>Trạng thái</th><th>Tải</th><th>Retry</th></tr></thead>
+            <tbody id="progressBody"><tr><td colspan="5" class="empty">Chưa có tác vụ</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-settings" class="tabpane">
+      <div class="card">
+        <h3>Chế độ tạo</h3>
+        <div class="segmented">
+          <label><input type="radio" name="runMode" value="video" checked><span>🎬 Video</span></label>
+          <label><input type="radio" name="runMode" value="image"><span>🖼 Ảnh</span></label>
+        </div>
+        <div class="grid2 gap topgap">
+          <div><label class="label small">Số output</label><select id="outputCount"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></div>
+          <div><label class="label small">Tỉ lệ</label><select id="aspectRatio"><option value="16:9">16:9</option><option value="9:16">9:16</option></select></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Nhịp chạy & Retry</h3>
+        <div class="grid3 gap">
+          <div><label class="label small">Delay min (s)</label><input id="delayMin" type="number" min="1" value="20"></div>
+          <div><label class="label small">Delay max (s)</label><input id="delayMax" type="number" min="1" value="30"></div>
+          <div><label class="label small">Retry</label><input id="maxRetries" type="number" min="0" value="5"></div>
+        </div>
+        <label class="checkline topgap"><input id="randomScroll" type="checkbox"> Cuộn ngẫu nhiên để giữ tile được render</label>
+        <div class="topgap"><label class="label small">Zoom Flow</label><select id="zoomLevel"><option value="1">100%</option><option value="0.9">90%</option><option value="0.8" selected>80%</option><option value="0.75">75%</option><option value="0.67">67%</option></select></div>
+      </div>
+
+      <div class="card">
+        <h3>Prompt helpers</h3>
+        <label class="checkline"><input id="addIndex" type="checkbox" checked> Gắn STT vào đầu prompt</label>
+        <label class="checkline"><input id="charSync" type="checkbox"> Character Sync bằng <code>@Tên</code></label>
+        <label class="checkline"><input id="keyframeSync" type="checkbox"> Keyframe Sync <code>(@start, @end)</code></label>
+        <label class="checkline"><input id="voiceSync" type="checkbox"> Voice Sync</label>
+        <select id="voiceSelect" class="topgap">
+          <option>Achernar</option><option>Achird</option><option>Algenib</option><option>Algieba</option><option>Alnilam</option>
+          <option>Aoede</option><option>Autonoe</option><option>Callirrhoe</option><option>Charon</option><option>Despina</option>
+          <option>Enceladus</option><option>Erinome</option><option>Fenrir</option><option>Gacrux</option><option>Iapetus</option>
+          <option>Kore</option><option>Laomedeia</option><option>Leda</option><option>Orus</option><option>Puck</option><option>Pulcherrima</option>
+          <option>Rasalgethi</option><option>Sadachbia</option><option>Sadaltager</option><option>Schedar</option><option>Sulafat</option>
+          <option>Umbriel</option><option>Vindemiatrix</option><option>Zephyr</option><option>Zubenelgenubi</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <h3>Đổi tên</h3>
+        <label class="checkline"><input id="autoRename" type="checkbox" checked> Tự đổi tên trên Flow nếu UI cho phép</label>
+        <select id="renameMode" class="topgap"><option value="default">Theo Prompt</option><option value="custom_list">Theo danh sách riêng</option></select>
+        <div id="renameDefaultBox" class="topgap"><label class="label small">Số bắt đầu</label><input id="renameStartIndex" type="number" min="1" value="1"></div>
+        <textarea id="renameCustomList" class="topgap hidden" rows="5" placeholder="Tên dòng 1 cho prompt 1…"></textarea>
+        <div class="muted topgap">Tên file tải về vẫn được Chrome ép theo quy tắc này, kể cả Cloud Rename thất bại.</div>
+      </div>
+
+      <div class="card">
+        <h3>Tải xuống</h3>
+        <select id="downloadMode"><option value="none">Không tự tải</option><option value="single" selected>Tải từng media</option><option value="zip">Tải ZIP dự án</option></select>
+        <div id="qualityBox" class="topgap"><label class="label small">Chất lượng</label><select id="downloadQuality"><option value="4k">4K</option><option value="1080p" selected>1080p</option><option value="720p">720p</option><option value="img_4k">Ảnh 4K</option><option value="img_2k">Ảnh 2K</option><option value="img_1k">Ảnh 1K / Original</option></select></div>
+      </div>
+
+      <div class="card">
+        <h3>Auto Shutdown (tùy chọn)</h3>
+        <label class="checkline"><input id="autoShutdown" type="checkbox"> Tắt máy sau khi toàn bộ tác vụ hoàn tất</label>
+        <div class="actions topgap"><button id="testNativeBtn" class="ghost">Test Native Host</button><button id="cancelShutdownBtn" class="danger ghostdanger hidden">Hủy shutdown</button></div>
+        <div id="nativeStatus" class="muted topgap">Không cần cài nếu bạn không dùng tính năng này.</div>
+      </div>
+
+      <div class="card">
+        <h3>Hiệu chỉnh selector</h3>
+        <div class="muted">Nếu Flow đổi giao diện, có thể chọn lại nút menu tải. Sau khi bấm, click đúng phần tử trên trang Flow.</div>
+        <button id="pickDownloadBtn" class="ghost topgap">🎯 Chọn nút menu của tile</button>
+        <div id="pickedSelector" class="codebox topgap">Chưa chọn</div>
+      </div>
+    </section>
+
+    <section id="tab-projects" class="tabpane">
+      <div class="card">
+        <div class="row between"><h3>Lịch sử dự án</h3><button id="deleteAllProjectsBtn" class="danger ghostdanger">Xóa tất cả</button></div>
+        <div id="projectList" class="projectlist"></div>
+      </div>
+      <div class="card"><div id="storageInfo" class="muted">Đang đọc dung lượng…</div></div>
+    </section>
+
+    <section id="tab-logs" class="tabpane">
+      <div class="card">
+        <div class="row between"><h3>Log</h3><button id="clearLogsBtn" class="ghost">Xóa log</button></div>
+        <div id="logs" class="logs"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
