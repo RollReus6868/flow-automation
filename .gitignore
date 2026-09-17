@@ -1,0 +1,6 @@
+# Thư viện tải về — cài lại bằng `npm install`
+node_modules/
+
+# Rác tạm khi chạy test trên Chromium thật
+/tmp-profile-*/
+*.log
