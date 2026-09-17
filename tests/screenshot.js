@@ -9,7 +9,13 @@ window.chrome = {
   runtime: {
     id: 'x', lastError: null,
     onMessage: { addListener(){}, removeListener(){} },
-    sendMessage: (msg) => {
+    // Hỗ trợ cả dạng callback (Side Panel 1.9.0 dùng dạng này) lẫn Promise.
+    sendMessage: (msg, cb) => {
+      const out = window.chrome.runtime.__reply(msg);
+      if (typeof cb === 'function') { out.then(cb); return; }
+      return out;
+    },
+    __reply: (msg) => {
       // 1.7.0: panel hỏi background danh sách tab Flow để vẽ khối "Chạy nhiều tab".
       if (msg && msg.action === 'LIST_FLOW_TABS') {
         return Promise.resolve({ ok: true, tabs: [
@@ -23,6 +29,19 @@ window.chrome = {
             ready: false, slot: null, projectName: '', running: false,
             total: 0, done: 0, creating: 0, error: 0, hidden: false, throttled: false, holdsDownloadLock: false }
         ] });
+      }
+      // 1.9.0: panel hỏi background trạng thái kiểm tra bản mới.
+      if (msg && msg.action === 'GET_UPDATE_STATE') {
+        return Promise.resolve({ ok: true, current: '1.9.0', latest: '1.9.1',
+          notes: 'Sửa lỗi lệch tên file khi tải 4K.', downloadUrl: 'https://github.com/a/b/archive/main.zip',
+          publishedAt: '2026-09-20', error: '', dismissedVersion: '',
+          lastCheckAt: Date.now() - 7 * 60 * 1000,
+          url: 'https://raw.githubusercontent.com/a/b/main/version.json',
+          defaultUrl: 'https://raw.githubusercontent.com/a/b/main/version.json' });
+      }
+      if (msg && msg.action === 'CHECK_UPDATE') {
+        return Promise.resolve({ ok: true, status: 'new', current: '1.9.0', latest: '1.9.1',
+          notes: 'Sửa lỗi lệch tên file khi tải 4K.', publishedAt: '2026-09-20' });
       }
       return Promise.resolve({ success: true });
     }
@@ -53,6 +72,14 @@ refreshPromptStats();
 document.getElementById('statCreating').textContent = '2';
 document.getElementById('statCompleted').textContent = '3';
 document.getElementById('statError').textContent = '1';
+/* 1.9.0: dựng sẵn trạng thái "có bản mới" để ảnh chụp thấy được banner. */
+app.update = { current: '1.9.0', latest: '1.9.1', notes: 'Sửa lỗi lệch tên file khi tải 4K.',
+               publishedAt: '2026-09-20', dismissedVersion: '',
+               downloadUrl: 'https://github.com/a/b/archive/main.zip',
+               url: 'https://raw.githubusercontent.com/a/b/main/version.json',
+               lastCheckAt: Date.now() - 7 * 60 * 1000, error: '' };
+applyUpdateResult(app.update);
+renderUpdateSection(app.update);
 app.tableMeta = { autoDownload: true, autoRename: true };
 app.tableRows = [
   { index:1, prompt:'Một con mèo tam thể đội mũ phi hành gia đang trôi giữa dải Ngân Hà, ánh sáng xanh tím phản chiếu trên mũ kính, chuyển động chậm, ống kính 35mm',
@@ -157,6 +184,9 @@ document.getElementById('connDetail').textContent = 'Dự án: Bible Ghibli — 
     // khối "Chạy nhiều tab" (1.7.0) — ảnh riêng để soi giao diện đa tab
     await pg.locator('#multiTabCard').screenshot({ path: `${OUT}/multitab-${theme}.png` });
 
+    // banner "Có bản mới" (1.9.0)
+    await pg.locator('#updateBanner').screenshot({ path: `${OUT}/update-banner-${theme}.png` });
+
     // tab Cài đặt
     await pg.click('.tab[data-tab="settings"]');
     await pg.evaluate(`document.querySelectorAll('details.acc').forEach(d => d.open = true)`);
@@ -165,6 +195,9 @@ document.getElementById('connDetail').textContent = 'Dự án: Bible Ghibli — 
 
     // khối "Chẩn đoán giao diện Flow" (1.8.0)
     await pg.locator('#diagAcc').screenshot({ path: `${OUT}/diag-${theme}.png` });
+
+    // khối "Cập nhật tiện ích" (1.9.0)
+    await pg.locator('#updateAcc').screenshot({ path: `${OUT}/update-${theme}.png` });
 
     // Các nút điều khiển chẩn đoán phải THẤY được và bấm được (đây là đường
     // duy nhất để người dùng tự vá khi Flow đổi UI).

@@ -5,9 +5,9 @@ Tiện ích Chrome (Manifest V3) tự động hoá thao tác prompt hàng loạt
 tài khoản, không Firebase/GAS/OAuth, không đọc `Authorization` header của phiên
 Google.
 
-> **Bản mới nhất: [`ext/flow-automation-local-1.8.0`](ext/flow-automation-local-1.8.0/)**
+> **Bản mới nhất: [`ext/flow-automation-local-1.9.0`](ext/flow-automation-local-1.9.0/)**
 > — xem mục "Có gì mới" ở đầu
-> [README của bản đó](ext/flow-automation-local-1.8.0/README.md).
+> [README của bản đó](ext/flow-automation-local-1.9.0/README.md).
 
 ---
 
@@ -20,7 +20,7 @@ Tiện ích **không** phát hành qua Chrome Web Store, nên cài theo kiểu "
 2. Mở Chrome → `chrome://extensions` → bật **Chế độ dành cho nhà phát triển**
    (Developer mode) ở góc trên phải.
 3. Bấm **Tải tiện ích đã giải nén** (Load unpacked) → chọn thư mục
-   `ext/flow-automation-local-1.8.0` (thư mục **chứa** `manifest.json`, không
+   `ext/flow-automation-local-1.9.0` (thư mục **chứa** `manifest.json`, không
    phải chọn chính file đó).
 4. Mở `flow.google.com`, bấm icon tiện ích để mở Side Panel.
 
@@ -35,10 +35,12 @@ cài đặt và danh sách dự án đã lưu **không bị mất**, vì chúng 
 
 | Đường dẫn | Nội dung |
 |---|---|
-| `ext/flow-automation-local-1.8.0/` | **Bản hiện hành** — tự chẩn đoán khi Flow đổi giao diện, tự chọn lại selector |
+| `ext/flow-automation-local-1.9.0/` | **Bản hiện hành** — tự báo khi có bản mới |
+| `ext/flow-automation-local-1.8.0/` | Tự chẩn đoán khi Flow đổi giao diện, tự chọn lại selector |
 | `ext/flow-automation-local-1.7.0/` | Bản chạy được **nhiều tab song song** |
 | `ext/flow-automation-local-1.6.1/` | Bản fork local đầu tiên (sửa lỗi tên file tiếng Việt) |
 | `orig/flow-automation-local-1.5.6/` | Engine **gốc** trước khi fork — giữ để đối chiếu, không dùng để chạy |
+| `version.json` | **File phát hành** — tiện ích đọc file này để biết có bản mới (xem dưới) |
 | `tests/` | Bộ kiểm thử ba tầng (xem dưới) |
 | `shots/` | Ảnh chụp giao diện Side Panel ở chế độ sáng / tối |
 
@@ -71,12 +73,14 @@ Bộ test chia **ba tầng**, mỗi tầng trả lời một loại câu hỏi k
 node tests/run.js
 node tests/integration.js
 node tests/diagnostics.js
+node tests/update.js
 
 # Tầng 2 — mô phỏng nhiều tab ở mức logic: bắt race condition
 node tests/multitab.js
 
 # Tầng 3 — Chromium THẬT qua Playwright: bắt buộc cho hành vi không đoán được
 node tests/multitab-chrome.js
+node tests/update-chrome.js
 node tests/subfolder-chrome.js
 node tests/probe-chrome.js
 node tests/screenshot.js
@@ -93,6 +97,48 @@ hai tab tải song song vẫn nhận đúng tên — tên file đọc thẳng t�
 
 Quy tắc: thay đổi nào chạm vào `chrome.downloads`, `chrome.storage.session`,
 hoặc logic nhiều tab thì **bắt buộc** chạy tầng 3 trước khi coi là xong.
+
+---
+
+## Phát hành một bản mới
+
+Từ bản 1.9.0, tiện ích **tự báo khi có bản mới**: mỗi lần mở Side Panel (và mỗi lần
+mở trình duyệt) nó đọc `version.json` ở gốc repo này, so với version trong
+`manifest.json` của bản đang chạy, và hiện banner nếu có bản mới hơn.
+
+Nhờ vậy người dùng khác (máy khác, bạn bè) **không cần được nhắn riêng** mới biết —
+nhưng họ phải đang chạy **bản 1.9.0 trở lên**, nên bản đầu tiên vẫn phải gửi tay một
+lần.
+
+Quy trình phát hành, sửa **một file duy nhất**:
+
+1. Tạo thư mục bản mới `ext/flow-automation-local-X.Y.Z/`, cập nhật `version` trong
+   `manifest.json` của nó cho khớp tên thư mục.
+2. Sửa `version.json` ở gốc repo:
+
+   ```json
+   {
+     "version": "X.Y.Z",
+     "downloadUrl": "https://github.com/RollReus6868/flow-automation/archive/refs/heads/main.zip",
+     "notes": "Một câu ngắn hiện trên banner của người dùng.",
+     "publishedAt": "2026-09-20"
+   }
+   ```
+
+3. `git add -A && git commit -m "X.Y.Z — …" && git push`
+
+Trong vòng vài phút (GitHub cache raw 5 phút) mọi máy sẽ thấy banner. Người nhận tải
+`main.zip`, giải nén, rồi Load unpacked thư mục `ext/flow-automation-local-X.Y.Z` bên
+trong.
+
+**Lưu ý về repo Private:** `raw.githubusercontent.com` chỉ đọc được không cần token khi
+repo **Public**. Nếu chuyển repo sang Private thì tính năng này tắt — khi đó đặt
+`version.json` vào một **Gist public** riêng (chỉ chứa số version + link tải, không
+chứa code) và đổi địa chỉ trong *Cài đặt → ⬆ Cập nhật tiện ích → Địa chỉ file
+version.json*.
+
+**`version.json` phải khớp `manifest.json`** của bản mới nhất — có test tự kiểm
+(`tests/update.js`), nên quên cập nhật một trong hai là test đỏ ngay.
 
 ---
 
@@ -115,7 +161,8 @@ Từ bản 1.8.0 bạn tự vá được trong vài phút, không cần chờ b�
   HTML rút gọn + 100 dòng log cuối — gửi đúng file đó là đủ để viết lại selector
   mới, không cần bạn tự mở F12.
 
-Chi tiết trong [README của bản 1.8.0](ext/flow-automation-local-1.8.0/README.md).
+Chi tiết trong [README của bản hiện hành](ext/flow-automation-local-1.9.0/README.md)
+(mục `0b`).
 
 ---
 

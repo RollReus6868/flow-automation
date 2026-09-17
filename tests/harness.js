@@ -34,8 +34,19 @@ function makeChrome(page) {
         removeListener: (fn) => { const i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1); }
       },
       onInstalled: { addListener() {} },
+      onStartup: { addListener(fn) { api._onStartup = fn; } },
+      // 1.9.0: kiểm tra bản mới so version lấy từ manifest thật của bản đang test.
+      getManifest: () => JSON.parse(fs.readFileSync(path.join(EXT, 'manifest.json'), 'utf8')),
+      getURL: (p) => 'chrome-extension://testextension/' + String(p).replace(/^\//, ''),
       onStartup: { addListener() {} },
-      sendMessage: (msg) => { sent.push(msg); return Promise.resolve(api._reply ? api._reply(msg) : undefined); },
+      // Hỗ trợ CẢ hai dạng gọi: trả Promise (code cũ) và truyền callback
+      // (Side Panel 1.9.0 dùng dạng callback để bỏ qua lastError của MV3).
+      sendMessage: (msg, cb) => {
+        sent.push(msg);
+        const out = Promise.resolve(api._reply ? api._reply(msg) : undefined);
+        if (typeof cb === 'function') { out.then(cb); return; }
+        return out;
+      },
       connectNative: () => ({ onMessage: { addListener() {} }, onDisconnect: { addListener() {} }, postMessage() {}, disconnect() {} })
     },
     storage: {
