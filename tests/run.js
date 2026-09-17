@@ -1,4 +1,4 @@
-const H = require('/home/claude/tests/harness.js');
+const H = require('./harness.js');
 const { ok, eq, section, loadPage } = H;
 
 /* ══════════════════════════════════════════════════════════════════

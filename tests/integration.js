@@ -4,7 +4,7 @@
    dựng DOM Google Flow mô phỏng (menu chuột phải + submenu chất lượng),
    rồi chạy chính hàm startDownloadForVideo() của extension.
    ══════════════════════════════════════════════════════════════════════ */
-const H = require('/home/claude/tests/harness.js');
+const H = require('./harness.js');
 const { ok, eq, section, loadPage } = H;
 
 const FLOW_HTML = `<!doctype html><html><body>

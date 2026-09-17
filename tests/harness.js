@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
-const EXT = '/home/claude/ext/flow-automation-local-1.8.0';
+const { EXT } = require('./paths.js');
 
 let PASS = 0, FAIL = 0;
 const fails = [];

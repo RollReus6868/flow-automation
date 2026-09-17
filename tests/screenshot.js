@@ -2,8 +2,7 @@
    và xuất ảnh xem trước giao diện. */
 const { chromium } = require('playwright');
 const fs = require('fs');
-const EXT = '/home/claude/ext/flow-automation-local-1.8.0';
-const OUT = '/home/claude/shots';
+const { EXT, SHOTS: OUT } = require('./paths.js');
 
 const CHROME_STUB = `
 window.chrome = {
@@ -137,7 +136,7 @@ document.getElementById('connDetail').textContent = 'Dự án: Bible Ghibli — 
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
-  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const browser = await chromium.launch(require('./paths.js').launchOpts());
   const errors = [];
 
   for (const theme of ['dark', 'light']) {

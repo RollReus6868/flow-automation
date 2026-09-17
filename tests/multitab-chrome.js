@@ -10,7 +10,7 @@
    ========================================================================== */
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path'), os = require('os');
-const EXT = '/home/claude/ext/flow-automation-local-1.8.0';
+const { EXT } = require('./paths.js');
 
 let PASS = 0, FAIL = 0;
 const ok = (n, c, x = '') => { c ? (PASS++, console.log('  ✓ ' + n)) : (FAIL++, console.log('  ✗ ' + n + ' ' + x)); };
@@ -37,7 +37,7 @@ async function launch() {
     download: { prompt_for_download: false, default_directory: dl }, savefile: { default_directory: dl }
   }));
   const ctx = await chromium.launchPersistentContext(dir, {
-    executablePath: '/opt/pw-browsers/chromium',
+    ...require('./paths.js').launchOpts(),
     args: ['--headless=new', `--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`,
            '--no-first-run', '--no-default-browser-check'],
   });

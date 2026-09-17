@@ -50,8 +50,19 @@ vậy nếu bản mới có lỗi bạn có thể Load unpacked lại bản cũ 
 ## Chạy kiểm thử
 
 ```bash
-npm install          # chỉ cần jsdom
+npm install                        # jsdom, cho tầng 1 và 2
+npm install -D playwright          # chỉ cần cho tầng 3
+npx playwright install chromium    # tải Chromium để test trên browser thật
 ```
+
+Mọi đường dẫn trong bộ test đều quy chiếu về **gốc repo**, nên clone về đâu cũng
+chạy được. Ghi đè khi cần:
+
+| Biến môi trường | Tác dụng |
+|---|---|
+| `FLOW_VER=1.7.0` | Kiểm thử bản khác trong `ext/` |
+| `FLOW_EXT=/đường/dẫn` | Trỏ thẳng vào một thư mục tiện ích bất kỳ |
+| `CHROMIUM_PATH=...` | Dùng Chromium khác cho tầng 3 |
 
 Bộ test chia **ba tầng**, mỗi tầng trả lời một loại câu hỏi khác nhau:
 

@@ -5,7 +5,7 @@
         (state='interrupted' + tên rỗng trông rất giống dấu hiệu hộp thoại mở). */
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path'), os = require('os');
-const EXT = '/home/claude/ext/flow-automation-local-1.8.0';
+const { EXT } = require('./paths.js');
 
 let PASS = 0, FAIL = 0;
 const ok = (n, c, x = '') => { c ? (PASS++, console.log('  ✓ ' + n)) : (FAIL++, console.log('  ✗ ' + n + ' ' + x)); };
@@ -35,7 +35,7 @@ async function probe({ allowDownloads }) {
   }));
 
   const ctx = await chromium.launchPersistentContext(dir, {
-    executablePath: '/opt/pw-browsers/chromium',
+    ...require('./paths.js').launchOpts(),
     args: ['--headless=new', `--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`,
            '--no-first-run', '--no-default-browser-check'],
   });
@@ -86,7 +86,7 @@ async function probe({ allowDownloads }) {
   fs.writeFileSync(path.join(dir, 'Default', 'Preferences'), JSON.stringify({
     download: { prompt_for_download: false, default_directory: dl }, savefile: { default_directory: dl } }));
   const ctx = await chromium.launchPersistentContext(dir, {
-    executablePath: '/opt/pw-browsers/chromium',
+    ...require('./paths.js').launchOpts(),
     args: ['--headless=new', `--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`, '--no-first-run'],
   });
   const pg = ctx.pages()[0] || await ctx.newPage();
