@@ -46,6 +46,21 @@ async function launch() {
   });
   const sw = await waitForReadySw(ctx);
   const extId = new URL(sw.url()).host;
+
+  // Worker tự chạy MỘT LƯỢT kiểm tra bản mới lúc khởi động (onStartup) và lượt
+  // đó dùng MẠNG THẬT. Nếu để nó chạy song song với kịch bản test thì nó ghi đè
+  // trạng thái vừa dựng (ví dụ xoá cờ lỗi thành "vừa xong") -> test đỏ ngẫu
+  // nhiên. Chặn ngay từ đầu: bịt fetch rồi chờ lượt khởi động kết thúc, để mỗi
+  // kịch bản bắt đầu từ trạng thái sạch và KHÔNG có request nào đang bay.
+  await sw.evaluate(() => {
+    globalThis.__calls = [];
+    globalThis.fetch = (url) => {
+      globalThis.__calls.push(String(url));
+      return Promise.reject(new Error('boot-check bị chặn trong test'));
+    };
+  });
+  await new Promise(r => setTimeout(r, 1500));
+
   return { ctx, sw, dir, extId };
 }
 
@@ -215,6 +230,12 @@ async function stubFetch(sw, body, status = 200) {
     ok('panel nhận được thông điệp lỗi (không treo vô hạn)', !!r.error, JSON.stringify(r));
 
     // Panel vẫn phải sống và banner không hiện khi đang lỗi.
+    // Panel vẽ lại mục "Cập nhật tiện ích" SAU khi worker trả lời (qua
+    // GET_UPDATE_STATE), nên đọc DOM ngay lập tức là đọc phải bản cũ -> chờ.
+    await page.waitForFunction(
+      () => /lỗi/i.test(document.getElementById('updCheckedAt').textContent),
+      null, { timeout: 5000 }
+    ).catch(() => {});
     const alive = await page.evaluate(() => {
       const el = document.getElementById('updCheckedAt');
       return { text: el.textContent, hidden: document.getElementById('updateBanner').classList.contains('hidden') };
@@ -243,6 +264,7 @@ async function stubFetch(sw, body, status = 200) {
     await sw.evaluate(() => chrome.storage.local.set({
       veoSettings: { updateCheckEnabled: false }
     }));
+    // launch() đã chặn sẵn lượt kiểm tra lúc khởi động, nên bộ đếm ở đây sạch.
     await stubFetch(sw, { version: '99.0.0' });
 
     const page = await ctx.newPage();
