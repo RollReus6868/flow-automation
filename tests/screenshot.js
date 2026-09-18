@@ -193,6 +193,9 @@ document.getElementById('connDetail').textContent = 'Dự án: Bible Ghibli — 
     await pg.waitForTimeout(250);
     await pg.screenshot({ path: `${OUT}/settings-${theme}.png`, fullPage: true });
 
+    // khối "Nhịp chạy & Retry" — chứa ô "Chốt chặn mất mạng" (1.10.0)
+    await pg.locator('#paceAcc').screenshot({ path: `${OUT}/pace-${theme}.png` });
+
     // khối "Chẩn đoán giao diện Flow" (1.8.0)
     await pg.locator('#diagAcc').screenshot({ path: `${OUT}/diag-${theme}.png` });
 

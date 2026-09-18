@@ -5,9 +5,9 @@ Tiện ích Chrome (Manifest V3) tự động hoá thao tác prompt hàng loạt
 tài khoản, không Firebase/GAS/OAuth, không đọc `Authorization` header của phiên
 Google.
 
-> **Bản mới nhất: [`ext/flow-automation-local-1.9.0`](ext/flow-automation-local-1.9.0/)**
-> — xem mục "Có gì mới" ở đầu
-> [README của bản đó](ext/flow-automation-local-1.9.0/README.md).
+> **Bản mới nhất: [`ext/flow-automation-local-1.10.0`](ext/flow-automation-local-1.10.0/)**
+> — sửa lỗi bot đứng vì Chrome báo "mất mạng" sai. Xem mục "Có gì mới" ở đầu
+> [README của bản đó](ext/flow-automation-local-1.10.0/README.md).
 
 ---
 
@@ -20,7 +20,7 @@ Tiện ích **không** phát hành qua Chrome Web Store, nên cài theo kiểu "
 2. Mở Chrome → `chrome://extensions` → bật **Chế độ dành cho nhà phát triển**
    (Developer mode) ở góc trên phải.
 3. Bấm **Tải tiện ích đã giải nén** (Load unpacked) → chọn thư mục
-   `ext/flow-automation-local-1.9.0` (thư mục **chứa** `manifest.json`, không
+   `ext/flow-automation-local-1.10.0` (thư mục **chứa** `manifest.json`, không
    phải chọn chính file đó).
 4. Mở `flow.google.com`, bấm icon tiện ích để mở Side Panel.
 
@@ -35,7 +35,8 @@ cài đặt và danh sách dự án đã lưu **không bị mất**, vì chúng 
 
 | Đường dẫn | Nội dung |
 |---|---|
-| `ext/flow-automation-local-1.9.0/` | **Bản hiện hành** — tự báo khi có bản mới |
+| `ext/flow-automation-local-1.10.0/` | **Bản hiện hành** — không còn đứng vì báo "mất mạng" giả |
+| `ext/flow-automation-local-1.9.0/` | Tự báo khi có bản mới |
 | `ext/flow-automation-local-1.8.0/` | Tự chẩn đoán khi Flow đổi giao diện, tự chọn lại selector |
 | `ext/flow-automation-local-1.7.0/` | Bản chạy được **nhiều tab song song** |
 | `ext/flow-automation-local-1.6.1/` | Bản fork local đầu tiên (sửa lỗi tên file tiếng Việt) |
@@ -74,6 +75,8 @@ node tests/run.js
 node tests/integration.js
 node tests/diagnostics.js
 node tests/update.js
+node tests/network.js
+
 
 # Tầng 2 — mô phỏng nhiều tab ở mức logic: bắt race condition
 node tests/multitab.js
@@ -83,6 +86,7 @@ node tests/multitab-chrome.js
 node tests/update-chrome.js
 node tests/subfolder-chrome.js
 node tests/probe-chrome.js
+node tests/network-chrome.js
 node tests/screenshot.js
 ```
 
@@ -95,8 +99,13 @@ khoá tải (để chứng minh phép thử có ý nghĩa), rồi chứng minh k
 hai tab tải song song vẫn nhận đúng tên — tên file đọc thẳng từ
 `chrome.downloads` và từ ổ đĩa, không từ mô phỏng.
 
+`network-chrome.js` (1.10.0) cũng thuộc loại "chỉ browser thật mới chứng minh
+được": nó **tái hiện đúng cảnh** `navigator.onLine = false` trong khi request tới
+Flow **vẫn thành công** — thứ jsdom không dựng nổi vì `fetch` ở đó là bản giả.
+
 Quy tắc: thay đổi nào chạm vào `chrome.downloads`, `chrome.storage.session`,
-hoặc logic nhiều tab thì **bắt buộc** chạy tầng 3 trước khi coi là xong.
+logic nhiều tab, hoặc trạng thái mạng thì **bắt buộc** chạy tầng 3 trước khi coi
+là xong.
 
 ---
 
@@ -161,8 +170,8 @@ Từ bản 1.8.0 bạn tự vá được trong vài phút, không cần chờ b�
   HTML rút gọn + 100 dòng log cuối — gửi đúng file đó là đủ để viết lại selector
   mới, không cần bạn tự mở F12.
 
-Chi tiết trong [README của bản hiện hành](ext/flow-automation-local-1.9.0/README.md)
-(mục `0b`).
+Chi tiết trong [README của bản hiện hành](ext/flow-automation-local-1.10.0/README.md)
+(mục `0c`).
 
 ---
 

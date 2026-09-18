@@ -12,7 +12,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 
 /** Bản tiện ích đang kiểm thử. Đổi bản: FLOW_VER=1.7.0 node tests/run.js */
-const VERSION = process.env.FLOW_VER || '1.9.0';
+const VERSION = process.env.FLOW_VER || '1.10.0';
 
 /**
  * Thư mục tiện ích. Ưu tiên FLOW_EXT nếu người chạy trỏ tay vào một thư mục
